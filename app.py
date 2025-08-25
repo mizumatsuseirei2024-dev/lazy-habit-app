@@ -11,8 +11,13 @@ THEME = {
     "日記": ("📝", "#9467bd"),
 }
 
-st.set_page_config(page_title="Lazy Continuity", layout="centered", page_icon="🧸")
-st.title("🧸 怠惰でも続けられるアプリ")
+st.set_page_config(
+    page_title="Lazy Continuity",
+    layout="centered",
+    page_icon="🧸",
+    initial_sidebar_state="expanded"
+)
+
 
 # --- 初期化 ---
 if "history" not in st.session_state:
@@ -142,3 +147,25 @@ with st.expander("ログを見る"):
     for d in sorted(dates, reverse=True):
         item = st.session_state.history[d]
         st.write(f"- {d}｜{item['category']}｜{item['task']}")
+
+dark_css = """
+<style>
+    .stApp {
+        background-color: #0d1117;
+        color: #e6edf3;
+        font-family: 'Segoe UI','Roboto',sans-serif;
+    }
+    section[data-testid="stSidebar"] {
+        background-color: #161b22;
+    }
+    button[kind="primary"] {
+        background: linear-gradient(90deg, #1f6feb, #238636);
+        color: white; border-radius: 8px; border: none;
+        font-weight: 600;
+    }
+    button[kind="primary"]:hover {
+        background: linear-gradient(90deg, #388bfd, #2ea043);
+    }
+</style>
+"""
+st.markdown(dark_css, unsafe_allow_html=True)
