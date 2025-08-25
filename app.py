@@ -28,6 +28,8 @@ with st.sidebar:
     category = st.selectbox("カテゴリ", ["学習", "運動", "掃除", "創作", "日記"])
     lazy_level = st.slider("怠惰レベル（高いほど易しい）", 1, 5, 4)
     st.caption("※ MVPではレベルが高いほど“より小さい”タスクを出します。")
+        weekly_goal = st.slider("今週の目標回数（7日間）", 1, 7, 4)
+
 
 # --- タスク候補（初期セット） ---
 CANDIDATES = {
@@ -124,6 +126,12 @@ def calc_streak(dates: list[str]) -> int:
             break
     return streak
 
+today_dt = datetime.date.today()
+last7 = [(today_dt - datetime.timedelta(days=i)).isoformat() for i in range(7)]
+done_last7 = sum(d in st.session_state.history for d in last7)
+
+st.subheader("今週の進捗")
+st.progress(min(done_last7 / weekly_goal, 1.0), text=f"{done_last7}/{weekly_goal}")
 st.divider()
 st.subheader("継続状況")
 dates = list(st.session_state.history.keys())
