@@ -147,76 +147,62 @@ with st.expander("ログを見る"):
 
 dark_css = """
 <style>
-  /* 全体のベース（文字を少し大きく＆行間ひろめ） */
+  /* ページ全体（本文サイズ/行間UP） */
   .stApp {
-    background-color: #0d1117;
-    color: #e6edf3;
-    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
-    font-size: 16px;            /* ← 15→16px */
-    line-height: 1.65;          /* ← 行間UP */
+    background-color:#0d1117 !important;
+    color:#e6edf3 !important;
+    font-family: ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif !important;
+    font-size:16px !important;
+    line-height:1.65 !important;
   }
 
-  /* 見出しは白寄り・太めに */
-  h1, h2, h3 { color: #f0f6fc; letter-spacing: .2px; }
-  h1 { font-weight: 800; }
-  h2 { font-weight: 700; }
-  h3 { font-weight: 650; }
-
-  /* サイドバー（文字のコントラストUP） */
-  section[data-testid="stSidebar"] {
-    background-color: #161b22;
-    color: #c9d1d9;
-  }
-  section[data-testid="stSidebar"] * {
-    color: #c9d1d9 !important;
+  /* 中央カラムの幅・余白（読みやすく） */
+  div[data-testid="block-container"]{
+    max-width: 900px !important;
+    padding-top: 24px !important;
   }
 
-  /* ラベル/補足文はやや明るく */
-  label, span, .stMarkdown p {
-    color: #c9d1d9;
-  }
-  .stCaption, .st-emotion-cache-q8sbsg { color: #8b949e !important; }
+  /* サイドバー（確実に明るめ文字に） */
+  section[data-testid="stSidebar"]{ background:#161b22 !important; }
+  section[data-testid="stSidebar"] *{ color:#c9d1d9 !important; }
 
-  /* ボタン（文字が沈まないように） */
-  button[kind="primary"] {
-    background: linear-gradient(90deg, #1f6feb, #2ea043);
-    color: #ffffff !important;
-    border-radius: 10px;
-    border: 1px solid #1b4b91;
-    font-weight: 650;
-    letter-spacing: .2px;
-  }
-  button[kind="primary"]:hover {
-    filter: brightness(1.05);
-  }
+  /* 見出しのコントラスト */
+  h1,h2,h3{ color:#f0f6fc !important; letter-spacing:.2px !important; }
+  h2{ font-weight:800 !important; }
 
-  /* スライダー（つまみを見やすく） */
-  .stSlider [role="slider"] {
-    background: #58a6ff !important;
-    box-shadow: 0 0 0 3px rgba(88,166,255,.25);
-  }
-  .stSlider div[data-testid="stTickBar"] { background: #30363d !important; }
+  /* 文章/ラベル */
+  .stMarkdown p, label, span{ color:#c9d1d9 !important; }
 
-  /* プログレスバーのコントラストUP */
-  .stProgress > div > div > div > div {
-    background-color: #1f6feb !important;  /* 内側バー */
+  /* ボタン（白文字を強制） */
+  button[kind="primary"]{
+    background:linear-gradient(90deg,#1f6feb,#2ea043) !important;
+    color:#ffffff !important; border-radius:10px !important;
+    border:1px solid #1b4b91 !important; font-weight:650 !important;
   }
-  .stProgress > div > div {
-    background-color: #30363d !important;  /* 外枠 */
+  button[kind="primary"]:hover{ filter:brightness(1.06) !important; }
+
+  /* スライダー */
+  .stSlider [role="slider"]{
+    background:#58a6ff !important;
+    box-shadow:0 0 0 3px rgba(88,166,255,.25) !important;
   }
+  .stSlider div[data-testid="stTickBar"]{ background:#30363d !important; }
 
-  /* タスクカード（クラス指定版） */
-.task-card {
-  background: #161b22;  /* 少し明るめ */
-  border: 1.5px solid rgba(56,139,253,.55);
-  border-radius: 14px;
-  padding: 16px 18px;
-  box-shadow: 0 6px 18px rgba(0,0,0,.35);
-}
-.task-card .title { color:#f0f6fc; font-size:1.15rem; font-weight:750; }
-.task-card .main  { color:#fefefe; font-size:1.08rem; font-weight:650; }
-.task-card .meta  { color:#a3b1c9;  font-size:.9rem;  margin-top:6px; }
+  /* プログレスバー */
+  .stProgress > div > div > div > div{ background:#1f6feb !important; }
+  .stProgress > div > div{ background:#30363d !important; }
 
+  /* タスクカード：背景もう少し明るく、文字くっきり */
+  .task-card{
+    background:#161b22 !important;
+    border:1.5px solid rgba(56,139,253,.55) !important;
+    border-radius:14px !important;
+    padding:16px 18px !important;
+    box-shadow:0 6px 18px rgba(0,0,0,.35) !important;
+  }
+  .task-card .title{ color:#f0f6fc !important; font-size:1.15rem !important; font-weight:750 !important; }
+  .task-card .main { color:#fefefe  !important; font-size:1.08rem !important; font-weight:650 !important; }
+  .task-card .meta { color:#a3b1c9  !important; font-size:.9rem  !important; }
 </style>
 """
 st.markdown(dark_css, unsafe_allow_html=True)
