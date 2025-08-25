@@ -2,6 +2,15 @@
 import streamlit as st
 import datetime, random
 
+#theme
+THEME = {
+    "学習": ("📘", "#2d6cdf"),
+    "運動": ("🏃", "#2ca02c"),
+    "掃除": ("🧹", "#ff7f0e"),
+    "創作": ("🎨", "#d62728"),
+    "日記": ("📝", "#9467bd"),
+}
+
 st.set_page_config(page_title="Lazy Continuity", layout="centered", page_icon="🧸")
 st.title("🧸 怠惰でも続けられるアプリ")
 
@@ -67,9 +76,20 @@ if st.session_state.today_task is None or st.session_state.today_task.get("date"
 
 # --- タスクカード ---
 t = st.session_state.today_task
-st.subheader("今日やる最小タスク")
-st.write(f"**カテゴリ：** {t['category']}　**レベル：** {t['level']}")
-st.success(f"📝 **{t['task']}**")
+emoji, color = THEME[t["category"]]
+card_html = f"""
+<div style="border:2px solid {color}; border-radius:12px; padding:16px; background:rgba(0,0,0,0.02);">
+  <div style="font-size:1.15rem; font-weight:700; margin-bottom:6px;">
+    {emoji} 今日やる最小タスク
+  </div>
+  <div style="font-size:1.05rem; font-weight:600;">{t['task']}</div>
+  <div style="margin-top:8px; font-size:0.9rem; opacity:0.8;">
+    カテゴリ: {t['category']} ／ レベル: {t['level']}
+  </div>
+</div>
+"""
+st.markdown(card_html, unsafe_allow_html=True)
+
 
 col1, col2 = st.columns(2)
 with col1:
@@ -86,6 +106,8 @@ with col2:
     if st.button("✅ やった！"):
         st.session_state.history[today] = {"task": t["task"], "category": t["category"]}
         st.toast("記録しました！", icon="✅")
+        st.balloons()
+
 
 # --- 継続メトリクス ---
 def calc_streak(dates: list[str]) -> int:
