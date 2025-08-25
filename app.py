@@ -140,18 +140,45 @@ today_dt = datetime.date.today()
 last7 = [(today_dt - datetime.timedelta(days=i)).isoformat() for i in range(7)]
 done_last7 = sum(d in st.session_state.history for d in last7)
 
-st.subheader("今週の進捗")
-st.progress(min(done_last7 / weekly_goal, 1.0), text=f"{done_last7}/{weekly_goal}")
-st.divider()
-st.subheader("継続状況")
-dates = list(st.session_state.history.keys())
-st.metric("連続日数", f"{calc_streak(dates)} 日")
-st.write("合計達成回数:", len(dates))
+# --- ダッシュボードカード群 ---
+col1, col2 = st.columns(2)
 
-with st.expander("ログを見る"):
-    for d in sorted(dates, reverse=True):
-        item = st.session_state.history[d]
-        st.write(f"- {d}｜{item['category']}｜{item['task']}")
+with col1:
+    render_card("""
+      <h3>Quest Progress</h3>
+      <div class="progress-bar"><span style="width:38%"></span></div>
+      <p>38%</p>
+    """)
+
+    render_card("""
+      <h3>Level 15</h3>
+      <div class="level-badge">15</div>
+    """)
+
+with col2:
+    render_card("""
+      <h3>Daily Missions</h3>
+      <div class="circular-progress"><span>78%</span></div>
+    """)
+
+    render_card("""
+      <h3>Dungeon Stats</h3>
+      <div class="stats">
+        <div class="stat">
+          <div class="label">Attack</div>
+          <div class="bar"><span style="width:80%"></span></div>
+        </div>
+        <div class="stat">
+          <div class="label">Defense</div>
+          <div class="bar"><span style="width:50%"></span></div>
+        </div>
+        <div class="stat">
+          <div class="label">Health</div>
+          <div class="bar"><span style="width:65%"></span></div>
+        </div>
+      </div>
+    """)
+
 
 neon_css = """
 <style>
