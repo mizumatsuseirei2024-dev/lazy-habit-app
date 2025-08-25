@@ -85,17 +85,14 @@ if st.session_state.today_task is None or st.session_state.today_task.get("date"
 t = st.session_state.today_task
 emoji, color = THEME[t["category"]]
 card_html = f"""
-<div style="border:2px solid {color}; border-radius:12px; padding:16px; background:rgba(0,0,0,0.02);">
-  <div style="font-size:1.15rem; font-weight:700; margin-bottom:6px;">
-    {emoji} 今日やる最小タスク
-  </div>
-  <div style="font-size:1.05rem; font-weight:600;">{t['task']}</div>
-  <div style="margin-top:8px; font-size:0.9rem; opacity:0.8;">
-    カテゴリ: {t['category']} ／ レベル: {t['level']}
-  </div>
+<div class="task-card" style="border-color:{color}66;">
+  <div class="title">{emoji} 今日やる最小タスク</div>
+  <div class="main">{t['task']}</div>
+  <div class="meta">カテゴリ: {t['category']} ／ レベル: {t['level']}</div>
 </div>
 """
 st.markdown(card_html, unsafe_allow_html=True)
+
 
 
 col1, col2 = st.columns(2)
@@ -150,22 +147,75 @@ with st.expander("ログを見る"):
 
 dark_css = """
 <style>
-    .stApp {
-        background-color: #0d1117;
-        color: #e6edf3;
-        font-family: 'Segoe UI','Roboto',sans-serif;
-    }
-    section[data-testid="stSidebar"] {
-        background-color: #161b22;
-    }
-    button[kind="primary"] {
-        background: linear-gradient(90deg, #1f6feb, #238636);
-        color: white; border-radius: 8px; border: none;
-        font-weight: 600;
-    }
-    button[kind="primary"]:hover {
-        background: linear-gradient(90deg, #388bfd, #2ea043);
-    }
+  /* 全体のベース（文字を少し大きく＆行間ひろめ） */
+  .stApp {
+    background-color: #0d1117;
+    color: #e6edf3;
+    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+    font-size: 16px;            /* ← 15→16px */
+    line-height: 1.65;          /* ← 行間UP */
+  }
+
+  /* 見出しは白寄り・太めに */
+  h1, h2, h3 { color: #f0f6fc; letter-spacing: .2px; }
+  h1 { font-weight: 800; }
+  h2 { font-weight: 700; }
+  h3 { font-weight: 650; }
+
+  /* サイドバー（文字のコントラストUP） */
+  section[data-testid="stSidebar"] {
+    background-color: #161b22;
+    color: #c9d1d9;
+  }
+  section[data-testid="stSidebar"] * {
+    color: #c9d1d9 !important;
+  }
+
+  /* ラベル/補足文はやや明るく */
+  label, span, .stMarkdown p {
+    color: #c9d1d9;
+  }
+  .stCaption, .st-emotion-cache-q8sbsg { color: #8b949e !important; }
+
+  /* ボタン（文字が沈まないように） */
+  button[kind="primary"] {
+    background: linear-gradient(90deg, #1f6feb, #2ea043);
+    color: #ffffff !important;
+    border-radius: 10px;
+    border: 1px solid #1b4b91;
+    font-weight: 650;
+    letter-spacing: .2px;
+  }
+  button[kind="primary"]:hover {
+    filter: brightness(1.05);
+  }
+
+  /* スライダー（つまみを見やすく） */
+  .stSlider [role="slider"] {
+    background: #58a6ff !important;
+    box-shadow: 0 0 0 3px rgba(88,166,255,.25);
+  }
+  .stSlider div[data-testid="stTickBar"] { background: #30363d !important; }
+
+  /* プログレスバーのコントラストUP */
+  .stProgress > div > div > div > div {
+    background-color: #1f6feb !important;  /* 内側バー */
+  }
+  .stProgress > div > div {
+    background-color: #30363d !important;  /* 外枠 */
+  }
+
+  /* タスクカード（クラス指定版） */
+  .task-card {
+    background: #0f1623;                   /* 背景を少し明るくして文字を浮かせる */
+    border: 1.5px solid rgba(56,139,253,.55);
+    border-radius: 14px;
+    padding: 16px 18px;
+    box-shadow: 0 6px 18px rgba(0,0,0,.35);
+  }
+  .task-card .title   { color:#f0f6fc; font-size:1.12rem; font-weight:750; }
+  .task-card .main    { color:#e6edf3; font-size:1.05rem; font-weight:650; }
+  .task-card .meta    { color:#8b949e;  font-size:.9rem;  margin-top:6px; }
 </style>
 """
 st.markdown(dark_css, unsafe_allow_html=True)
