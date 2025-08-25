@@ -18,6 +18,10 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# ===== ヘルパー関数 =====
+def render_card(html: str):
+    st.markdown(f'<div class="card">{html}</div>', unsafe_allow_html=True)
+    
 
 # --- 初期化 ---
 if "history" not in st.session_state:
@@ -84,14 +88,18 @@ if st.session_state.today_task is None or st.session_state.today_task.get("date"
 # --- タスクカード ---
 t = st.session_state.today_task
 emoji, color = THEME[t["category"]]
-card_html = f"""
-<div class="task-card" style="border-color:{color}66;">
-  <div class="title">{emoji} 今日やる最小タスク</div>
-  <div class="main">{t['task']}</div>
-  <div class="meta">カテゴリ: {t['category']} ／ レベル: {t['level']}</div>
-</div>
+
+task_html = f"""
+  <div class="task-card" style="border-color:{color}66;">
+    <div class="title">{emoji} 今日やる最小タスク</div>
+    <div class="main">{t['task']}</div>
+    <div class="meta">カテゴリ: {t['category']} ／ レベル: {t['level']}</div>
+  </div>
 """
-st.markdown(card_html, unsafe_allow_html=True)
+
+# 👇ここで render_card を呼び出す
+render_card(task_html)
+
 
 
 
@@ -145,65 +153,63 @@ with st.expander("ログを見る"):
         item = st.session_state.history[d]
         st.write(f"- {d}｜{item['category']}｜{item['task']}")
 
-dark_css = """
+neon_css = """
 <style>
-  /* ページ全体（本文サイズ/行間UP） */
-  .stApp {
-    background-color:#0d1117 !important;
-    color:#e6edf3 !important;
-    font-family: ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif !important;
-    font-size:16px !important;
-    line-height:1.65 !important;
+  /* ====== Global ====== */
+  .stApp { background:#0a0f1c; color:#e6edf3; font-family:'Inter',ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Meiryo,sans-serif }
+  div[data-testid="block-container"]{ max-width:1100px; padding-top:20px }
+
+  /* ====== Card ====== */
+  .card{
+    background: rgba(20,30,60,.6);
+    border: 1px solid rgba(0,200,255,.30);
+    border-radius:16px; padding:20px; min-width:220px;
+    text-align:center; position:relative;
+    box-shadow:0 0 15px rgba(0,200,255,.20);
+    transition:.3s;
+  }
+  .card:hover{ box-shadow:0 0 25px rgba(0,200,255,.6) }
+
+  /* ====== Progress Bar (linear) ====== */
+  .progress-bar{ background:rgba(0,200,255,.20); border-radius:10px; height:10px; margin-top:10px; overflow:hidden }
+  .progress-bar span{
+    display:block; height:100%; width:38%;
+    background:linear-gradient(90deg,#00f6ff,#007bff);
+    border-radius:10px; box-shadow:0 0 10px #00f6ff; transition:width .4s ease;
   }
 
-  /* 中央カラムの幅・余白（読みやすく） */
-  div[data-testid="block-container"]{
-    max-width: 900px !important;
-    padding-top: 24px !important;
+  /* ====== Circular Progress ====== */
+  .circular-progress{ width:120px; height:120px; border-radius:50%;
+    background: conic-gradient(#00f6ff 78%, rgba(0,200,255,.1) 0);
+    display:flex; align-items:center; justify-content:center; margin:0 auto 10px; position:relative }
+  .circular-progress::before{ content:''; width:90px; height:90px; background:#0a0f1c; border-radius:50%; position:absolute }
+  .circular-progress span{ position:absolute; font-size:22px; font-weight:700; color:#00f6ff }
+
+  /* ====== Stats Bars ====== */
+  .stats{ text-align:left; margin-top:15px }
+  .stats .stat{ margin-bottom:10px }
+  .stats .label{ font-size:14px; opacity:.7 }
+  .stats .bar{ background:rgba(0,200,255,.2); border-radius:6px; height:8px; margin-top:4px; overflow:hidden }
+  .stats .bar span{ display:block; height:100%;
+    background:linear-gradient(90deg,#00f6ff,#007bff);
+    border-radius:6px; box-shadow:0 0 6px #00f6ff }
+
+  /* ====== Level Badge ====== */
+  .level-badge{
+    font-size:28px; font-weight:700; color:#00f6ff;
+    padding:20px; border:2px solid rgba(0,200,255,.4);
+    border-radius:12px; background:rgba(0,200,255,.1);
+    box-shadow:0 0 20px rgba(0,200,255,.4); margin:20px auto; display:inline-block
   }
 
-  /* サイドバー（確実に明るめ文字に） */
-  section[data-testid="stSidebar"]{ background:#161b22 !important; }
-  section[data-testid="stSidebar"] *{ color:#c9d1d9 !important; }
-
-  /* 見出しのコントラスト */
-  h1,h2,h3{ color:#f0f6fc !important; letter-spacing:.2px !important; }
-  h2{ font-weight:800 !important; }
-
-  /* 文章/ラベル */
-  .stMarkdown p, label, span{ color:#c9d1d9 !important; }
-
-  /* ボタン（白文字を強制） */
-  button[kind="primary"]{
-    background:linear-gradient(90deg,#1f6feb,#2ea043) !important;
-    color:#ffffff !important; border-radius:10px !important;
-    border:1px solid #1b4b91 !important; font-weight:650 !important;
-  }
-  button[kind="primary"]:hover{ filter:brightness(1.06) !important; }
-
-  /* スライダー */
-  .stSlider [role="slider"]{
-    background:#58a6ff !important;
-    box-shadow:0 0 0 3px rgba(88,166,255,.25) !important;
-  }
-  .stSlider div[data-testid="stTickBar"]{ background:#30363d !important; }
-
-  /* プログレスバー */
-  .stProgress > div > div > div > div{ background:#1f6feb !important; }
-  .stProgress > div > div{ background:#30363d !important; }
-
-  /* タスクカード：背景もう少し明るく、文字くっきり */
+  /* タスク表示カード（既存のTHEME色を枠色に） */
   .task-card{
-    background:#161b22 !important;
-    border:1.5px solid rgba(56,139,253,.55) !important;
-    border-radius:14px !important;
-    padding:16px 18px !important;
-    box-shadow:0 6px 18px rgba(0,0,0,.35) !important;
+    background:rgba(10,16,28,.7); border-radius:16px; padding:18px; text-align:left;
+    border:1px solid rgba(0,200,255,.25); box-shadow:0 0 14px rgba(0,200,255,.15)
   }
-  .task-card .title{ color:#f0f6fc !important; font-size:1.15rem !important; font-weight:750 !important; }
-  .task-card .main { color:#fefefe  !important; font-size:1.08rem !important; font-weight:650 !important; }
-  .task-card .meta { color:#a3b1c9  !important; font-size:.9rem  !important; }
+  .task-card .title{ font-weight:800; color:#c8e9ff; letter-spacing:.2px }
+  .task-card .main { font-size:1.15rem; font-weight:700; color:#ffffff }
+  .task-card .meta { color:#9db1c7; margin-top:6px }
 </style>
 """
-st.markdown(dark_css, unsafe_allow_html=True)
-
+st.markdown(neon_css, unsafe_allow_html=True)
