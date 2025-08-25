@@ -100,12 +100,11 @@ task_html = f"""
 # 👇ここで render_card を呼び出す
 render_card(task_html)
 
-
-
-
 col1, col2 = st.columns(2)
+
 with col1:
-    if st.button("🔁 別の提案"):
+    # 「別の提案」= セカンダリ（ゴースト調）
+    if st.button("🧠 別の提案", use_container_width=True):
         st.session_state.seed += 1
         st.session_state.today_task = {
             "task": pick_task(category, lazy_level),
@@ -114,11 +113,19 @@ with col1:
             "date": today,
         }
         st.rerun()
+
 with col2:
-    if st.button("✅ やった！"):
-        st.session_state.history[today] = {"task": t["task"], "category": t["category"]}
+    # 「やった！」= プライマリ（ネオングラデ）
+    if st.button("✅ やった！", type="primary", use_container_width=True):
+        st.session_state.history[today] = {
+            "task": t["task"],
+            "category": t["category"],
+            "level": t["level"],
+        }
         st.toast("記録しました！", icon="✅")
         st.balloons()
+        st.rerun()
+
 
 
 # --- 継続メトリクス ---
@@ -237,6 +244,40 @@ neon_css = """
   .task-card .title{ font-weight:800; color:#c8e9ff; letter-spacing:.2px }
   .task-card .main { font-size:1.15rem; font-weight:700; color:#ffffff }
   .task-card .meta { color:#9db1c7; margin-top:6px }
+
+  /* Secondary（=通常）ボタン：透明×シアン枠のゴースト調 */
+  .stButton > button {
+    background: rgba(0,200,255,.08) !important;
+    border: 1px solid rgba(0,200,255,.35) !important;
+    color: #c8e9ff !important;
+    border-radius: 12px !important;
+    padding: 10px 14px !important;
+    font-weight: 700 !important;
+    letter-spacing: .2px !important;
+    box-shadow: inset 0 0 10px rgba(0,200,255,.12), 0 0 10px rgba(0,200,255,.12) !important;
+    transition: all .15s ease !important;
+  }
+  .stButton > button:hover {
+    background: rgba(0,200,255,.16) !important;
+    border-color: #00f6ff !important;
+    box-shadow: 0 0 18px rgba(0,246,255,.35) !important;
+  }
+
+  /* Primaryボタン：ネオングラデ＋強い発光（=「やった！」用） */
+  button[kind="primary"] {
+    background: linear-gradient(90deg,#00f6ff,#007bff) !important;
+    border: none !important;
+    color: #06131c !important;       /* 文字色：暗背景に黒字で近未来っぽく */
+    border-radius: 12px !important;
+    padding: 10px 14px !important;
+    font-weight: 800 !important;
+    letter-spacing: .2px !important;
+    box-shadow: 0 0 20px rgba(0,246,255,.45) !important;
+  }
+  button[kind="primary"]:hover {
+    filter: brightness(1.07) !important;
+    box-shadow: 0 0 26px rgba(0,246,255,.60) !important;
+  }
 </style>
 """
 st.markdown(neon_css, unsafe_allow_html=True)
