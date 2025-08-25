@@ -206,16 +206,17 @@ dark_css = """
   }
 
   /* タスクカード（クラス指定版） */
-  .task-card {
-    background: #0f1623;                   /* 背景を少し明るくして文字を浮かせる */
-    border: 1.5px solid rgba(56,139,253,.55);
-    border-radius: 14px;
-    padding: 16px 18px;
-    box-shadow: 0 6px 18px rgba(0,0,0,.35);
-  }
-  .task-card .title   { color:#f0f6fc; font-size:1.12rem; font-weight:750; }
-  .task-card .main    { color:#e6edf3; font-size:1.05rem; font-weight:650; }
-  .task-card .meta    { color:#8b949e;  font-size:.9rem;  margin-top:6px; }
+.task-card {
+  background: #161b22;  /* 少し明るめ */
+  border: 1.5px solid rgba(56,139,253,.55);
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.35);
+}
+.task-card .title { color:#f0f6fc; font-size:1.15rem; font-weight:750; }
+.task-card .main  { color:#fefefe; font-size:1.08rem; font-weight:650; }
+.task-card .meta  { color:#a3b1c9;  font-size:.9rem;  margin-top:6px; }
+
 </style>
 """
 st.markdown(dark_css, unsafe_allow_html=True)
