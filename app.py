@@ -28,7 +28,7 @@ with st.sidebar:
     category = st.selectbox("カテゴリ", ["学習", "運動", "掃除", "創作", "日記"])
     lazy_level = st.slider("怠惰レベル（高いほど易しい）", 1, 5, 4)
     st.caption("※ MVPではレベルが高いほど“より小さい”タスクを出します。")
-        weekly_goal = st.slider("今週の目標回数（7日間）", 1, 7, 4)
+    weekly_goal = st.slider("今週の目標回数（7日間）", 1, 7, 4)
 
 
 # --- タスク候補（初期セット） ---
