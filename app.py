@@ -1,8 +1,7 @@
-# app.py
 import streamlit as st
 import datetime, random
 
-#theme
+# ===== テーマ =====
 THEME = {
     "学習": ("📘", "#2d6cdf"),
     "運動": ("🏃", "#2ca02c"),
@@ -18,7 +17,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ===== ヘルパー関数 =====
+# ===== ヘルパー =====
 def render_card(html: str):
     st.markdown(f'<div class="card">{html}</div>', unsafe_allow_html=True)
 
@@ -33,11 +32,9 @@ if "show_reward" not in st.session_state:
 if "reward_url" not in st.session_state:
     st.session_state.reward_url = None
 
-    
-
 # --- 初期化 ---
 if "history" not in st.session_state:
-    st.session_state.history = {}  # {"YYYY-MM-DD": {"task": "...", "category": "..."}}
+    st.session_state.history = {}  # {"YYYY-MM-DD": {"task": "...", "category": "...", "level": 3}}
 if "today_task" not in st.session_state:
     st.session_state.today_task = None
 if "seed" not in st.session_state:
@@ -46,11 +43,10 @@ if "seed" not in st.session_state:
 # --- 設定UI（最小） ---
 with st.sidebar:
     st.header("設定")
-    category = st.selectbox("カテゴリ", ["学習", "運動", "掃除", "創作", "日記"])
+    category = st.selectbox("カテゴリ", list(THEME.keys()))
     lazy_level = st.slider("怠惰レベル（高いほど易しい）", 1, 5, 4)
     st.caption("※ MVPではレベルが高いほど“より小さい”タスクを出します。")
     weekly_goal = st.slider("今週の目標回数（7日間）", 1, 7, 4)
-
 
 # --- タスク候補（初期セット） ---
 CANDIDATES = {
@@ -82,14 +78,20 @@ CANDIDATES = {
 }
 
 def pick_task(cat: str, level: int) -> str:
-    # 1/3/5の近いバケツに丸める
+    # 1/3/5 の近いバケツに丸める
     bucket = 5 if level >= 4 else (3 if level >= 2 else 1)
     random.seed(st.session_state.seed + datetime.date.today().toordinal())
     return random.choice(CANDIDATES[cat][bucket])
 
-# --- 今日のタスク生成 ---
+# --- 今日のタスク生成（カテゴリ/レベル変更にも追従） ---
 today = datetime.date.today().isoformat()
-if st.session_state.today_task is None or st.session_state.today_task.get("date") != today:
+prev = st.session_state.today_task
+if (
+    prev is None
+    or prev.get("date") != today
+    or prev.get("category") != category
+    or prev.get("level") != lazy_level
+):
     st.session_state.today_task = {
         "task": pick_task(category, lazy_level),
         "category": category,
@@ -102,14 +104,12 @@ t = st.session_state.today_task
 emoji, color = THEME[t["category"]]
 
 task_html = f"""
-  <div class="task-card" style="border-color:{color}66;">
-    <div class="title">{emoji} 今日やる最小タスク</div>
-    <div class="main">{t['task']}</div>
-    <div class="meta">カテゴリ: {t['category']} ／ レベル: {t['level']}</div>
+  <div class=\"task-card\" style=\"border-color:{color}66;\">
+    <div class=\"title\">{emoji} 今日やる最小タスク</div>
+    <div class=\"main\">{t['task']}</div>
+    <div class=\"meta\">カテゴリ: {t['category']} ／ レベル: {t['level']}</div>
   </div>
 """
-
-# 👇ここで render_card を呼び出す
 render_card(task_html)
 
 col1, col2 = st.columns(2)
@@ -141,10 +141,10 @@ with col2:
 # ===== ご褒美オーバーレイ =====
 if st.session_state.show_reward and st.session_state.reward_url:
     st.markdown(f"""
-    <div class="reward-overlay">
-      <div class="reward-box">
-        <img src="{st.session_state.reward_url}" />
-        <div class="reward-close">クリックして閉じる</div>
+    <div class=\"reward-overlay\">
+      <div class=\"reward-box\">
+        <img src=\"{st.session_state.reward_url}\" />
+        <div class=\"reward-close\">クリックして閉じる</div>
       </div>
     </div>
     """, unsafe_allow_html=True)
@@ -153,12 +153,10 @@ if st.session_state.show_reward and st.session_state.reward_url:
         st.session_state.reward_url = None
         st.rerun()
 
-
-
-
 # --- 継続メトリクス ---
-def calc_streak(dates: list[str]) -> int:
-    if not dates: return 0
+def calc_streak(dates):
+    if not dates:
+        return 0
     dates_sorted = sorted(dates, reverse=True)
     cur = datetime.date.today()
     streak = 0
@@ -171,67 +169,67 @@ def calc_streak(dates: list[str]) -> int:
             break
     return streak
 
+streak = calc_streak(list(st.session_state.history.keys()))
+
 today_dt = datetime.date.today()
 last7 = [(today_dt - datetime.timedelta(days=i)).isoformat() for i in range(7)]
 done_last7 = sum(d in st.session_state.history for d in last7)
 
-# 既存の today_dt / last7 / done_last7 を使う
 percent_week = int(100 * min(done_last7 / weekly_goal, 1.0)) if weekly_goal > 0 else 0
 bar_width = f"{percent_week}%"
 
 total_done = len(st.session_state.history)
 level = max(1, total_done // 5 + 1)   # 仮ルール：5回で +1
 
-
-# --- ダッシュボードカード群 ---
 # --- ダッシュボードカード群 ---
 col1, col2 = st.columns(2)
 
 with col1:
     render_card(f"""
         <h3>Quest Progress</h3>
-        <div class="progress-bar"><span style="width:{bar_width}"></span></div>
-        <p>{percent_week}%</p>
+        <div class=\"progress-bar\"><span style=\"width:{bar_width}\"></span></div>
+        <p>{percent_week}%（今週 {done_last7}/{weekly_goal} ）</p>
     """)
 
     render_card(f"""
         <h3>Level {level}</h3>
-        <div class="level-badge">{level}</div>
+        <div class=\"level-badge\">{level}</div>
+        <p>連続達成：{streak} 日</p>
     """)
 
 with col2:
+    # 円形プログレスを動的に（背景の割合を percent_week に連動）
     render_card(f"""
         <h3>Daily Missions</h3>
-        <div class="circular-progress"><span>{percent_week}%</span></div>
+        <div class=\"circular-progress\" style=\"background: conic-gradient(#00f6ff {percent_week}%, rgba(0,200,255,.1) 0);\"><span>{percent_week}%</span></div>
     """)
 
     render_card(f"""
         <h3>Dungeon Stats</h3>
-        <div class="stats">
-            <div class="stat">
-                <div class="label">Attack</div>
-                <div class="bar"><span style="width:80%"></span></div>
+        <div class=\"stats\">
+            <div class=\"stat\">
+                <div class=\"label\">Attack</div>
+                <div class=\"bar\"><span style=\"width:80%\"></span></div>
             </div>
-            <div class="stat">
-                <div class="label">Defense</div>
-                <div class="bar"><span style="width:50%"></span></div>
+            <div class=\"stat\">
+                <div class=\"label\">Defense</div>
+                <div class=\"bar\"><span style=\"width:50%\"></span></div>
             </div>
-            <div class="stat">
-                <div class="label">Health</div>
-                <div class="bar"><span style="width:65%"></span></div>
+            <div class=\"stat\">
+                <div class=\"label\">Health</div>
+                <div class=\"bar\"><span style=\"width:65%\"></span></div>
             </div>
         </div>
     """)
 
-
-
+# ===== スタイル =====
 neon_css = """
 <style>
-  /* ====== Global ====== */
+  /* Global */
   .stApp { background:#0a0f1c; color:#e6edf3; font-family:'Inter',ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Meiryo,sans-serif }
   div[data-testid="block-container"]{ max-width:1100px; padding-top:20px }
 
-  /* ====== Card ====== */
+  /* Card */
   .card{
     background: rgba(20,30,60,.6);
     border: 1px solid rgba(0,200,255,.30);
@@ -242,22 +240,22 @@ neon_css = """
   }
   .card:hover{ box-shadow:0 0 25px rgba(0,200,255,.6) }
 
-  /* ====== Progress Bar (linear) ====== */
+  /* Linear Progress */
   .progress-bar{ background:rgba(0,200,255,.20); border-radius:10px; height:10px; margin-top:10px; overflow:hidden }
   .progress-bar span{
-    display:block; height:100%; width:38%;
+    display:block; height:100%;
+    /* width はインライン style を優先（動的反映）*/
     background:linear-gradient(90deg,#00f6ff,#007bff);
     border-radius:10px; box-shadow:0 0 10px #00f6ff; transition:width .4s ease;
   }
 
-  /* ====== Circular Progress ====== */
+  /* Circular Progress */
   .circular-progress{ width:120px; height:120px; border-radius:50%;
-    background: conic-gradient(#00f6ff 78%, rgba(0,200,255,.1) 0);
     display:flex; align-items:center; justify-content:center; margin:0 auto 10px; position:relative }
   .circular-progress::before{ content:''; width:90px; height:90px; background:#0a0f1c; border-radius:50%; position:absolute }
   .circular-progress span{ position:absolute; font-size:22px; font-weight:700; color:#00f6ff }
 
-  /* ====== Stats Bars ====== */
+  /* Stats Bars */
   .stats{ text-align:left; margin-top:15px }
   .stats .stat{ margin-bottom:10px }
   .stats .label{ font-size:14px; opacity:.7 }
@@ -266,15 +264,15 @@ neon_css = """
     background:linear-gradient(90deg,#00f6ff,#007bff);
     border-radius:6px; box-shadow:0 0 6px #00f6ff }
 
-  /* ====== Level Badge ====== */
+  /* Level Badge */
   .level-badge{
     font-size:28px; font-weight:700; color:#00f6ff;
     padding:20px; border:2px solid rgba(0,200,255,.4);
     border-radius:12px; background:rgba(0,200,255,.1);
-    box-shadow:0 0 20px rgba(0,200,255,.4); margin:20px auto; display:inline-block
+    box-shadow:0 0 20px rgba(0,200,255,.4); margin:12px auto; display:inline-block
   }
 
-  /* タスク表示カード（既存のTHEME色を枠色に） */
+  /* タスク表示カード */
   .task-card{
     background:rgba(10,16,28,.7); border-radius:16px; padding:18px; text-align:left;
     border:1px solid rgba(0,200,255,.25); box-shadow:0 0 14px rgba(0,200,255,.15)
@@ -283,7 +281,7 @@ neon_css = """
   .task-card .main { font-size:1.15rem; font-weight:700; color:#ffffff }
   .task-card .meta { color:#9db1c7; margin-top:6px }
 
-  /* Secondary（=通常）ボタン：透明×シアン枠のゴースト調 */
+  /* Buttons */
   .stButton > button {
     background: rgba(0,200,255,.08) !important;
     border: 1px solid rgba(0,200,255,.35) !important;
@@ -300,12 +298,10 @@ neon_css = """
     border-color: #00f6ff !important;
     box-shadow: 0 0 18px rgba(0,246,255,.35) !important;
   }
-
-  /* Primaryボタン：ネオングラデ＋強い発光（=「やった！」用） */
   button[kind="primary"] {
     background: linear-gradient(90deg,#00f6ff,#007bff) !important;
     border: none !important;
-    color: #06131c !important;       /* 文字色：暗背景に黒字で近未来っぽく */
+    color: #06131c !important;
     border-radius: 12px !important;
     padding: 10px 14px !important;
     font-weight: 800 !important;
@@ -316,6 +312,13 @@ neon_css = """
     filter: brightness(1.07) !important;
     box-shadow: 0 0 26px rgba(0,246,255,.60) !important;
   }
+
+  /* Reward Overlay */
+  .reward-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.5); display:flex; align-items:center; justify-content:center; z-index:9999 }
+  .reward-box{ background:#0a0f1c; border:1px solid rgba(0,200,255,.35); border-radius:16px; padding:12px; box-shadow:0 0 24px rgba(0,200,255,.35) }
+  .reward-box img{ width:60vw; max-width:720px; border-radius:12px; display:block }
+  .reward-close{ text-align:center; color:#9db1c7; margin-top:6px }
 </style>
 """
 st.markdown(neon_css, unsafe_allow_html=True)
+
