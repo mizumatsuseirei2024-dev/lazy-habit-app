@@ -21,6 +21,18 @@ st.set_page_config(
 # ===== ヘルパー関数 =====
 def render_card(html: str):
     st.markdown(f'<div class="card">{html}</div>', unsafe_allow_html=True)
+
+# ===== ご褒美画像（あとで assets/ に差し替え可） =====
+REWARD_IMAGES = [
+    "https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?q=80&w=1600&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1495567720989-cebdbdd97913?q=80&w=1600&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1500534623283-312aade485b7?q=80&w=1600&auto=format&fit=crop",
+]
+if "show_reward" not in st.session_state:
+    st.session_state.show_reward = False
+if "reward_url" not in st.session_state:
+    st.session_state.reward_url = None
+
     
 
 # --- 初期化 ---
@@ -103,7 +115,6 @@ render_card(task_html)
 col1, col2 = st.columns(2)
 
 with col1:
-    # 「別の提案」= セカンダリ（ゴースト調）
     if st.button("🧠 別の提案", use_container_width=True):
         st.session_state.seed += 1
         st.session_state.today_task = {
@@ -115,16 +126,33 @@ with col1:
         st.rerun()
 
 with col2:
-    # 「やった！」= プライマリ（ネオングラデ）
     if st.button("✅ やった！", type="primary", use_container_width=True):
+        t = st.session_state.today_task
         st.session_state.history[today] = {
-            "task": t["task"],
-            "category": t["category"],
-            "level": t["level"],
+            "task": t["task"], "category": t["category"], "level": t["level"]
         }
         st.toast("記録しました！", icon="✅")
         st.balloons()
+        # ご褒美
+        st.session_state.reward_url = random.choice(REWARD_IMAGES)
+        st.session_state.show_reward = True
         st.rerun()
+
+# ===== ご褒美オーバーレイ =====
+if st.session_state.show_reward and st.session_state.reward_url:
+    st.markdown(f"""
+    <div class="reward-overlay">
+      <div class="reward-box">
+        <img src="{st.session_state.reward_url}" />
+        <div class="reward-close">クリックして閉じる</div>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
+    if st.button("閉じる", key="close_reward"):
+        st.session_state.show_reward = False
+        st.session_state.reward_url = None
+        st.rerun()
+
 
 
 
@@ -147,44 +175,54 @@ today_dt = datetime.date.today()
 last7 = [(today_dt - datetime.timedelta(days=i)).isoformat() for i in range(7)]
 done_last7 = sum(d in st.session_state.history for d in last7)
 
+# 既存の today_dt / last7 / done_last7 を使う
+percent_week = int(100 * min(done_last7 / weekly_goal, 1.0)) if weekly_goal > 0 else 0
+bar_width = f"{percent_week}%"
+
+total_done = len(st.session_state.history)
+level = max(1, total_done // 5 + 1)   # 仮ルール：5回で +1
+
+
+# --- ダッシュボードカード群 ---
 # --- ダッシュボードカード群 ---
 col1, col2 = st.columns(2)
 
 with col1:
-    render_card("""
-      <h3>Quest Progress</h3>
-      <div class="progress-bar"><span style="width:38%"></span></div>
-      <p>38%</p>
+    render_card(f"""
+        <h3>Quest Progress</h3>
+        <div class="progress-bar"><span style="width:{bar_width}"></span></div>
+        <p>{percent_week}%</p>
     """)
 
-    render_card("""
-      <h3>Level 15</h3>
-      <div class="level-badge">15</div>
+    render_card(f"""
+        <h3>Level {level}</h3>
+        <div class="level-badge">{level}</div>
     """)
 
 with col2:
-    render_card("""
-      <h3>Daily Missions</h3>
-      <div class="circular-progress"><span>78%</span></div>
+    render_card(f"""
+        <h3>Daily Missions</h3>
+        <div class="circular-progress"><span>{percent_week}%</span></div>
     """)
 
-    render_card("""
-      <h3>Dungeon Stats</h3>
-      <div class="stats">
-        <div class="stat">
-          <div class="label">Attack</div>
-          <div class="bar"><span style="width:80%"></span></div>
+    render_card(f"""
+        <h3>Dungeon Stats</h3>
+        <div class="stats">
+            <div class="stat">
+                <div class="label">Attack</div>
+                <div class="bar"><span style="width:80%"></span></div>
+            </div>
+            <div class="stat">
+                <div class="label">Defense</div>
+                <div class="bar"><span style="width:50%"></span></div>
+            </div>
+            <div class="stat">
+                <div class="label">Health</div>
+                <div class="bar"><span style="width:65%"></span></div>
+            </div>
         </div>
-        <div class="stat">
-          <div class="label">Defense</div>
-          <div class="bar"><span style="width:50%"></span></div>
-        </div>
-        <div class="stat">
-          <div class="label">Health</div>
-          <div class="bar"><span style="width:65%"></span></div>
-        </div>
-      </div>
     """)
+
 
 
 neon_css = """
